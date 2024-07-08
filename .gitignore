@@ -1,0 +1,17 @@
+AlignScore/
+logs/
+model_checkpoints/
+quickumls/
+scoring/
+test_phase_2/
+train/
+valid/
+wandb/
+.venv/
+__pycache__/
+baseline_*
+dataframeagg_*
+predictions_*
+submissions_*
+UMLSScorer.py
+UMLSScorer.zip
