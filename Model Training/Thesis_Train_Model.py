@@ -63,7 +63,7 @@ model_course.to(device)
 model_save_path = './model_checkpoints'
 epochs = 3
 
-optimizer_course = AdamW(model_course.parameters(), lr=5e-5 * math.sqrt(2))
+optimizer_course = AdamW(model_course.parameters(), lr=5e-5)
 total_steps_course = len(loader_train_course) * epochs
 scheduler_course = get_linear_schedule_with_warmup(optimizer_course, num_warmup_steps=0, num_training_steps=total_steps_course)
 
