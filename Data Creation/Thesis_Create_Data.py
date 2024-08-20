@@ -308,3 +308,57 @@ df_aggregated['preprocessed_discharge_text'] = df_aggregated['entities_discharge
 path = '/vol/csedu-nobackup/project/lnguyen/Thesis/dataframeagg_test_phase_2_entities.csv'
 with open(path, 'w', encoding = 'utf-8-sig') as f:
   df_aggregated.to_csv(f)
+
+def split_sentences(ranked_sentences):
+    hospital_course = []
+    discharge_instructions = []
+    is_discharge_instruction = False
+    is_hospital_course = False
+
+    for sentence in ranked_sentences:
+        sentence = sentence.replace("</s>", "").replace("<RAD_SEP>", "").strip()
+        if not sentence:
+            continue  # Skip empty sentences
+
+        # Check for keywords indicating a switch in sections
+        sentence_lower = sentence.lower().strip()
+
+        if sentence_lower.startswith(('discharge instructions', 'follow-up', 'follow up')) or any(kw in sentence.lower() for kw in ['follow-up', 'medication', 'instructions']):
+            is_discharge_instruction = True
+            is_hospital_course = False
+        elif sentence_lower.startswith(('hospital course', 'brief hospital course')) or any(kw in sentence.lower() for kw in ['hospital course', 'admission', 'treatment', 'complaint']):
+            is_hospital_course = True
+            is_discharge_instruction = False
+
+        # Append sentences to the respective lists
+        if is_discharge_instruction:
+            discharge_instructions.append(sentence)
+        elif is_hospital_course:
+            hospital_course.append(sentence)
+     # Ensure there are no empty inputs
+    if not hospital_course:
+        hospital_course.append("No hospital course provided.")
+    if not discharge_instructions:
+        discharge_instructions.append("No discharge instructions provided.")
+
+    return ' '.join(hospital_course), ' '.join(discharge_instructions)
+
+
+def ensure_non_empty_columns(df, col1, col2, default1="No hospital course provided.", default2="No discharge instructions provided."):
+    df[col1] = df[col1].apply(lambda x: x if x.strip() else default1)
+    df[col2] = df[col2].apply(lambda x: x if x.strip() else default2)
+    return df
+
+df_aggregated['ranked_masked_discharge_text_list'] = df_aggregated['preprocessed_discharge_text'].apply(lambda x: re.split(r'(?<=[.!?])\s+|\n', x))
+baseline_df = pd.DataFrame()
+baseline_df['hadm_id'] = df_aggregated['hadm_id']
+
+baseline_df[['brief_hospital_course', 'discharge_instructions']] = df_aggregated['ranked_masked_discharge_text_list'].apply(
+    lambda x: pd.Series(split_sentences(x))
+)
+
+baseline_df = ensure_non_empty_columns(baseline_df, 'brief_hospital_course', 'discharge_instructions')
+
+path = '/vol/csedu-nobackup/project/lnguyen/Thesis/baseline_submissions.csv'
+with open(path, 'w', encoding = 'utf-8-sig') as f:
+  baseline_df.to_csv(f)
