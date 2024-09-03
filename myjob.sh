@@ -1,4 +1,5 @@
 #!/bin/bash
+# The script to run the python code on Radboud's computing clusters
 #SBATCH --account=cseduimc030
 #SBATCH --partition=csedu-prio,csedu
 #SBATCH --qos=csedu-normal
